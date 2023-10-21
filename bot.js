@@ -2,6 +2,7 @@ import { WechatyBuilder } from 'wechaty'
 import { FileBox } from 'file-box'
 import { config } from './config.js'
 import TelegramBot from "node-telegram-bot-api"
+import Sp from 'sharp'
 
 const token = config.token
 const chatid = config.chatid;
@@ -42,6 +43,10 @@ wechaty
       console.log('Message discarded because its TOO OLD(than 1 minute)')
       return
     }
+    if (msg.self()) {
+      return
+    }
+
     const contact = msg.talker()
     const text = msg.text()
     const room = msg.room()
@@ -81,8 +86,11 @@ wechaty
           bot.sendDocument(chatid, `tmp/${fb.name}`)
         }
       } else {
+        if (msg.type() == wechaty.Message.Type.Unknown){
+          console.log("Unknown message type")
+          return
+        }
         bot.sendMessage(chatid, pretty_msg(contact, null, "Sent a message that is not supported"));
-        console.log('Message discarded because it is NOT a valid message')
         return
       }
       return
@@ -139,8 +147,13 @@ bot.on('message', async (msg) => {
       await current_target.say(filebox)
     }
     if (msg.sticker) {
+      if (msg.sticker.is_animated || msg.sticker.is_video){
+        bot.sendMessage(chatid, 'Animated stickers are not supported');
+        return
+      }
       const ds = await bot.downloadFile(msg.sticker.file_id, 'tmp')
-      const filebox = FileBox.fromFile(ds)
+      await Sp(ds).toFile('tmp/output.png')
+      const filebox = FileBox.fromFile('tmp/output.png')
       await current_target.say(filebox)
     }
     if (msg.document) {
