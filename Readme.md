@@ -1,6 +1,6 @@
 # Wechat on Telegram
 
-Sending/Receiving text/photos/images from wechat in telegram.
+Sending/Receiving text/photos/files from wechat in telegram.
 
 ## Deploy Steps
 
