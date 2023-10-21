@@ -152,8 +152,8 @@ bot.on('message', async (msg) => {
         return
       }
       const ds = await bot.downloadFile(msg.sticker.file_id, 'tmp')
-      await Sp(ds).toFile('tmp/output.png')
-      const filebox = FileBox.fromFile('tmp/output.png')
+      await Sp(ds).flatten({ background: '#ffffff'}).toFile('tmp/output.jpg')
+      const filebox = FileBox.fromFile('tmp/output.jpg')
       await current_target.say(filebox)
     }
     if (msg.document) {
