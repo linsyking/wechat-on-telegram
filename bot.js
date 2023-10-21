@@ -118,19 +118,24 @@ wechaty
 wechaty.start()
 
 bot.on('message', async (msg) => {
-  if (msg[0] == '/') {
+  if (msg.chat.id != chatid) {
+    return
+  }
+
+
+  if (msg.text && msg.text[0] == '/') {
     // Command mode
-    const cmd = msg.split(' ')[0]
+    const cmd = msg.text.split(' ')[0]
     if (cmd == '/help') {
-      const text = `Commands:\n
-      /help - Show this message\n
-      /search - Search for a contact\n
-      /set - Set target\n`
+      const text = `Commands:
+/help - Show this message
+/search - Search for a contact
+/set - Set target`
       await bot.sendMessage(chatid, text);
       return
     }
-    if (cmd == '/search') {
-      const name = msg.substring(cmd.length + 1)
+    if (cmd == '/search' && msg.text.length > cmd.length + 1) {
+      const name = msg.text.substring(cmd.length + 1)
       const contactFindByName = await wechaty.Contact.findAll({ name: name })
       const contactFindByAlias = await wechaty.Contact.findAll({ alias: name })
       let cid = 0
@@ -149,8 +154,9 @@ bot.on('message', async (msg) => {
         return
       }
       await bot.sendMessage(chatid, text);
+      return
     }
-    if (cmd == '/set') {
+    if (cmd == '/set' && msg.text.length > cmd.length + 1) {
       const name = msg.substring(cmd.length + 1)
       const contactFindByName = await wechaty.Contact.find({ name: name })
       const contactFindByAlias = await wechaty.Contact.findAll({ alias: name })
@@ -165,55 +171,56 @@ bot.on('message', async (msg) => {
         return
       }
       bot.sendMessage(chatid, `Cannot find ${name}`);
+      return
     }
     return
   }
-  if (msg.chat.id == chatid) {
-    if (msg.reply_to_message) {
-      // New target
-      try {
-        if (!msg.reply_to_message.text) {
-          bot.sendMessage(chatid, 'Please reply to a text message');
-          return
-        }
-        const target = msg_to_target[msg.reply_to_message.message_id]
-        if (target && targets[target]) {
-          current_target = targets[target]
-        } else {
-          bot.sendMessage(chatid, 'Cannot find target');
-        }
-      } catch (err) {
-        console.log(err)
+
+  if (msg.reply_to_message) {
+    // New target
+    try {
+      if (!msg.reply_to_message.text) {
+        bot.sendMessage(chatid, 'Please reply to a text message');
         return
       }
-    }
-    if (!current_target) {
-      bot.sendMessage(chatid, 'No target set');
+      const target = msg_to_target[msg.reply_to_message.message_id]
+      if (target && targets[target]) {
+        current_target = targets[target]
+      } else {
+        bot.sendMessage(chatid, 'Cannot find target');
+      }
+    } catch (err) {
+      console.log(err)
       return
     }
-    if (msg.photo) {
-      const ds = await bot.downloadFile(msg.photo[msg.photo.length - 1].file_id, 'tmp')
-      const filebox = FileBox.fromFile(ds)
-      await current_target.say(filebox)
-    }
-    if (msg.sticker) {
-      if (msg.sticker.is_animated || msg.sticker.is_video) {
-        bot.sendMessage(chatid, 'Animated stickers are not supported');
-        return
-      }
-      const ds = await bot.downloadFile(msg.sticker.file_id, 'tmp')
-      await Sp(ds).flatten({ background: '#ffffff' }).toFile('tmp/output.jpg')
-      const filebox = FileBox.fromFile('tmp/output.jpg')
-      await current_target.say(filebox)
-    }
-    if (msg.document) {
-      const ds = await bot.downloadFile(msg.document.file_id, 'tmp')
-      const filebox = FileBox.fromFile(ds)
-      await current_target.say(filebox)
-    }
-    if (msg.text) {
-      current_target.say(msg.text)
-    }
-
   }
-})
+  if (!current_target) {
+    bot.sendMessage(chatid, 'No target set');
+    return
+  }
+  if (msg.photo) {
+    const ds = await bot.downloadFile(msg.photo[msg.photo.length - 1].file_id, 'tmp')
+    const filebox = FileBox.fromFile(ds)
+    await current_target.say(filebox)
+  }
+  if (msg.sticker) {
+    if (msg.sticker.is_animated || msg.sticker.is_video) {
+      bot.sendMessage(chatid, 'Animated stickers are not supported');
+      return
+    }
+    const ds = await bot.downloadFile(msg.sticker.file_id, 'tmp')
+    await Sp(ds).flatten({ background: '#ffffff' }).toFile('tmp/output.jpg')
+    const filebox = FileBox.fromFile('tmp/output.jpg')
+    await current_target.say(filebox)
+  }
+  if (msg.document) {
+    const ds = await bot.downloadFile(msg.document.file_id, 'tmp')
+    const filebox = FileBox.fromFile(ds)
+    await current_target.say(filebox)
+  }
+  if (msg.text) {
+    current_target.say(msg.text)
+  }
+
+}
+)
