@@ -1,0 +1,4 @@
+export const config = {
+    token: '<YOUR BOT TOKEN>',
+    chatid: <YOUR BOT CHAT ID>,
+}

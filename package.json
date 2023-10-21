@@ -1,0 +1,18 @@
+{
+  "name": "wct",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "type": "module",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "file-box": "^1.4.15",
+    "node-telegram-bot-api": "^0.63.0",
+    "wechaty": "^1.20.2"
+  }
+}
