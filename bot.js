@@ -48,8 +48,8 @@ wechaty
         const name = msg.substring(cmd.length + 1)
         const contactFindByName = await wechaty.Contact.findAll({ name: name })
         const contactFindByAlias = await wechaty.Contact.findAll({ alias: name })
-        var cid = 0
-        var text = ""
+        let cid = 0
+        let text = ""
         for (const contact of contactFindByName) {
           text += `${cid}: ${contact.name()}\n`
           cid++
@@ -103,7 +103,7 @@ wechaty
 
     if (msg.type() !== wechaty.Message.Type.Text) {
       if (fts.includes(msg.type())) {
-        var fb = null
+        let fb = null
         if (room) {
           // Group
           const topic = await room.topic()
