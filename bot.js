@@ -133,7 +133,11 @@ bot.on('message', async (msg) => {
     }
     if (msg.photo) {
       const ds = await bot.downloadFile(msg.photo[msg.photo.length - 1].file_id, 'tmp')
-
+      const filebox = FileBox.fromFile(ds)
+      await current_target.say(filebox)
+    }
+    if (msg.sticker) {
+      const ds = await bot.downloadFile(msg.sticker.file_id, 'tmp')
       const filebox = FileBox.fromFile(ds)
       await current_target.say(filebox)
     }
