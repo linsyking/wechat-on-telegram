@@ -11,9 +11,7 @@ const contacs = Object.create(null);
 const groups = Object.create(null);
 var current_target = null;
 
-function banned_group(name) {
-  return (name.indexOf('UM') > -1) || (name.indexOf('几何') > -1) || (name.indexOf('恋爱') > -1)
-}
+const banned_group = config.banned_group
 
 function pretty_msg(contact, group, msg) {
   if (group) {
