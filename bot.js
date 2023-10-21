@@ -157,7 +157,7 @@ bot.on('message', async (msg) => {
       return
     }
     if (cmd == '/set' && msg.text.length > cmd.length + 1) {
-      const name = msg.substring(cmd.length + 1)
+      const name = msg.text.substring(cmd.length + 1)
       const contactFindByName = await wechaty.Contact.find({ name: name })
       const contactFindByAlias = await wechaty.Contact.findAll({ alias: name })
       if (contactFindByName) {
