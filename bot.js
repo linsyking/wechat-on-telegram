@@ -33,6 +33,56 @@ wechaty
   .on('scan', (qrcode, status) => console.log(`Scan QR Code to login: ${status}\nhttps://wechaty.js.org/qrcode/${encodeURIComponent(qrcode)}`))
   .on('login', user => console.log(`User ${user} logged in`))
   .on('message', async msg => {
+    if (msg[0] == '/') {
+      // Command mode
+      const cmd = msg.split(' ')[0]
+      if (cmd == '/help') {
+        const text = `Commands:\n
+        /help - Show this message\n
+        /search - Search for a contact\n
+        /set - Set target\n`
+        await bot.sendMessage(chatid, text);
+        return
+      }
+      if (cmd == '/search') {
+        const name = msg.substring(cmd.length + 1)
+        const contactFindByName = await wechaty.Contact.findAll({ name: name })
+        const contactFindByAlias = await wechaty.Contact.findAll({ alias: name })
+        var cid = 0
+        var text = ""
+        for (const contact of contactFindByName) {
+          text += `${cid}: ${contact.name()}\n`
+          cid++
+        }
+        const alias_start = cid
+        for (const contact of contactFindByAlias) {
+          text += `${cid}: ${contact.name()}\n`
+          cid++
+        }
+        if (cid == 0) {
+          bot.sendMessage(chatid, `Cannot find ${name}`);
+          return
+        }
+        await bot.sendMessage(chatid, text);
+      }
+      if (cmd == '/set') {
+        const name = msg.substring(cmd.length + 1)
+        const contactFindByName = await wechaty.Contact.find({ name: name })
+        const contactFindByAlias = await wechaty.Contact.findAll({ alias: name })
+        if (contactFindByName) {
+          current_target = contactFindByName
+          bot.sendMessage(chatid, `Set target to ${contactFindByName.name()}`);
+          return
+        }
+        if (contactFindByAlias) {
+          current_target = contactFindByAlias
+          bot.sendMessage(chatid, `Set target to ${contactFindByAlias.name()}`);
+          return
+        }
+        bot.sendMessage(chatid, `Cannot find ${name}`);
+      }
+      return
+    }
     const fts = [
       wechaty.Message.Type.Attachment,
       wechaty.Message.Type.Image,
@@ -86,7 +136,7 @@ wechaty
           bot.sendDocument(chatid, `tmp/${fb.name}`)
         }
       } else {
-        if (msg.type() == wechaty.Message.Type.Unknown){
+        if (msg.type() == wechaty.Message.Type.Unknown) {
           console.log("Unknown message type")
           return
         }
@@ -147,12 +197,12 @@ bot.on('message', async (msg) => {
       await current_target.say(filebox)
     }
     if (msg.sticker) {
-      if (msg.sticker.is_animated || msg.sticker.is_video){
+      if (msg.sticker.is_animated || msg.sticker.is_video) {
         bot.sendMessage(chatid, 'Animated stickers are not supported');
         return
       }
       const ds = await bot.downloadFile(msg.sticker.file_id, 'tmp')
-      await Sp(ds).flatten({ background: '#ffffff'}).toFile('tmp/output.jpg')
+      await Sp(ds).flatten({ background: '#ffffff' }).toFile('tmp/output.jpg')
       const filebox = FileBox.fromFile('tmp/output.jpg')
       await current_target.say(filebox)
     }
