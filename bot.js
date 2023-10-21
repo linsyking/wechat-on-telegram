@@ -81,6 +81,7 @@ wechaty
           bot.sendDocument(chatid, `tmp/${fb.name}`)
         }
       } else {
+        bot.sendMessage(chatid, pretty_msg(contact, null, "Sent a message that is not supported"));
         console.log('Message discarded because it is NOT a valid message')
         return
       }
