@@ -7,9 +7,10 @@ const token = config.token
 const chatid = config.chatid;
 
 const bot = new TelegramBot(token, { polling: true });
-const contacs = Object.create(null);
-const groups = Object.create(null);
+const targets = Object.create(null);
+const msg_to_target = Object.create(null);
 var current_target = null;
+
 
 const banned_group = config.banned_group
 
@@ -54,20 +55,22 @@ wechaty
           if (banned_group(topic)) {
             return
           }
-          const key = `g${room.id.substring(2, 7)}`
-          groups[key] = room
+          const key = room.id
+          targets[key] = room
           console.log(`Room: ${topic} Id: ${key}`)
           fb = await msg.toFileBox()
           await fb.toFile(`tmp/${fb.name}`)
-          bot.sendMessage(chatid, `${key}\n${pretty_msg(contact, topic, "Sent a file")}`);
+          const msgid = await bot.sendMessage(chatid, pretty_msg(contact, topic, "Sent a file"));
+          msg_to_target[msgid.message_id] = key
         } else {
           // Private
-          const key = `p${contact.id.substring(2, 7)}`
-          contacs[key] = contact
+          const key = contact.id
+          targets[key] = contact
           console.log(`Contact: ${contact.name()} Id: ${key}`)
           fb = await msg.toFileBox()
           await fb.toFile(`tmp/${fb.name}`)
-          bot.sendMessage(chatid, `${key}\n${pretty_msg(contact, null, "Sent a file")}`);
+          const msgid = await bot.sendMessage(chatid, pretty_msg(contact, null, "Sent a file"));
+          msg_to_target[msgid.message_id] = key
         }
         if (msg.type() == wechaty.Message.Type.Audio) {
           bot.sendAudio(chatid, `tmp/${fb.name}`)
@@ -89,16 +92,18 @@ wechaty
       if (banned_group(topic)) {
         return
       }
-      const key = `g${room.id.substring(2, 7)}`
-      groups[key] = room
+      const key = room.id
+      targets[key] = room
       console.log(`Room: ${topic} Id: ${key}`)
-      bot.sendMessage(chatid, `${key}\n${pretty_msg(contact, topic, text)}`);
+      const msgid = await bot.sendMessage(chatid, pretty_msg(contact, topic, text));
+      msg_to_target[msgid.message_id] = key
     } else {
       // Private
-      const key = `p${contact.id.substring(2, 7)}`
-      contacs[key] = contact
+      const key = contact.id
+      targets[key] = contact
       console.log(`Contact: ${contact.name()} Id: ${key}`)
-      bot.sendMessage(chatid, `${key}\n${pretty_msg(contact, null, text)}`);
+      const msgid = await bot.sendMessage(chatid, pretty_msg(contact, null, text));
+      msg_to_target[msgid.message_id] = key
     }
   })
 wechaty.start()
@@ -112,13 +117,9 @@ bot.on('message', async (msg) => {
           bot.sendMessage(chatid, 'Please reply to a text message');
           return
         }
-        const target = msg.reply_to_message.text
-        const fl = target.split('\n')[0]
-        const q = fl[0]
-        if (q == 'p') {
-          current_target = contacs[fl]
-        } else if (q == 'g') {
-          current_target = groups[fl]
+        const target = msg_to_target[msg.reply_to_message.message_id]
+        if (target && targets[target]) {
+          current_target = targets[target]
         } else {
           bot.sendMessage(chatid, 'Cannot find target');
         }
