@@ -90,7 +90,7 @@ wechaty
           console.log("Unknown message type")
           return
         }
-        bot.sendMessage(chatid, pretty_msg(contact, null, "Sent a message that is not supported"));
+        // bot.sendMessage(chatid, pretty_msg(contact, null, "Sent a message that is not supported"));
         return
       }
       return
@@ -129,37 +129,14 @@ bot.on('message', async (msg) => {
     if (cmd == '/help') {
       const text = `Commands:
 /help - Show this message
-/search - Search for a contact
-/set - Set target`
-      await bot.sendMessage(chatid, text);
-      return
-    }
-    if (cmd == '/search' && msg.text.length > cmd.length + 1) {
-      const name = msg.text.substring(cmd.length + 1)
-      const contactFindByName = await wechaty.Contact.findAll({ name: name })
-      const contactFindByAlias = await wechaty.Contact.findAll({ alias: name })
-      let cid = 0
-      let text = ""
-      for (const contact of contactFindByName) {
-        text += `${cid}: ${contact.name()}\n`
-        cid++
-      }
-      const alias_start = cid
-      for (const contact of contactFindByAlias) {
-        text += `${cid}: ${contact.name()}\n`
-        cid++
-      }
-      if (cid == 0) {
-        bot.sendMessage(chatid, `Cannot find ${name}`);
-        return
-      }
+/set - Set target (use name or alias)`
       await bot.sendMessage(chatid, text);
       return
     }
     if (cmd == '/set' && msg.text.length > cmd.length + 1) {
       const name = msg.text.substring(cmd.length + 1)
       const contactFindByName = await wechaty.Contact.find({ name: name })
-      const contactFindByAlias = await wechaty.Contact.findAll({ alias: name })
+      const contactFindByAlias = await wechaty.Contact.find({ alias: name })
       if (contactFindByName) {
         current_target = contactFindByName
         bot.sendMessage(chatid, `Set target to ${contactFindByName.name()}`);
